@@ -1,0 +1,182 @@
+---
+title: "HW2"
+author: "Asim Waheed"
+date: "2024-01-28"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+profs <- read.csv("C:/Users/asimw/Downloads/profs.csv")
+bikeshare <- read.csv("C:/Users/asimw/Downloads/bikeshare.csv")
+capmetro_UT <- read.csv("C:/Users/asimw/Downloads/capmetro_UT.csv")
+billboard <- read.csv("C:/Users/asimw/Downloads/billboard.csv")
+library(dplyr)
+```
+
+***Question 1 Part A***
+
+```{r, echo=FALSE}
+ggplot(profs, aes(x=eval)) + geom_histogram(binwidth = 0.1, fill="blue", color="black") + ggtitle("Histogram of Course Evaluation Scores") + xlab("Evaluation Score") + ylab("Frequency")
+```
+
+***This histogram displays the distribution of course evaluation scores, highlighting the range and frequency of these scores. Key takeaway: Most evaluations cluster around the higher score range, indicating generally positive evaluations.***
+
+***Question 1 Part B***
+
+```{r, echo=FALSE}
+ggplot(profs, aes(x=native, y=eval)) +
+  geom_boxplot() + ggtitle("Course Evaluation Scores by Native English Speaker Status") + xlab("Native English Speaker") + ylab("Evaluation Score")
+```
+
+***These boxplots compare the distribution of course evaluation scores between native and non-native English-speaking professors. Key takeaway: There seems to be a slight difference in median scores favoring native English speakers.***
+
+***Question 1 Part C***
+
+```{r, echo=FALSE}
+ggplot(profs, aes(x=eval)) + geom_histogram(binwidth = 0.1, fill="blue", color="black") + facet_grid(gender ~ .) + ggtitle("Course Evaluation Scores: Male vs. Female Instructors") + xlab("Evaluation Score") + ylab("Frequency")
+```
+
+***The faceted histogram illustrates the distribution of course evaluation scores for male and female instructors, allowing for a direct comparison. Key takeaway: Both genders show similar evaluation score distributions, with a slight skew towards higher scores.***
+
+***Question 1 Part D***
+
+```{r, echo=FALSE}
+ggplot(profs, aes(x=beauty, y=eval)) + geom_point() + ggtitle("Association Between Physical Attractiveness and Course Evaluations") + xlab("Physical Attractiveness") + ylab("Course Evaluation")
+```
+
+***This scatterplot explores the relationship between professors' physical attractiveness and their course evaluation scores. Key takeaway: While there is some variability, a trend suggesting a positive correlation can be observed.***
+
+***Question 2 Part A***
+
+```{r, echo=FALSE}
+average_hourly_rentals <- bikeshare %>%
+  group_by(hr) %>%
+  summarize(average_rentals = mean(total))
+ggplot(average_hourly_rentals, aes(x=hr, y=average_rentals)) + geom_line() + ggtitle("Average Hourly Bike Rentals") + xlab("Hour of the Day") + ylab("Average Total Rentals")
+```
+
+***The line graph illustrates the average number of bike rentals at different hours of the day. Key takeaway: Peak rental times are in the morning and late afternoon, aligning with typical commuting hours.***
+
+***Question 2 Part B***
+
+```{r, echo=FALSE, message=FALSE}
+average_rentals_by_hour_workingday <- bikeshare %>% group_by(hr, workingday) %>%
+  summarize(average_rentals = mean(total))
+ggplot(average_rentals_by_hour_workingday, aes(x=hr, y=average_rentals)) + geom_line() + facet_wrap(~workingday) + ggtitle("Average Bike Rentals by Hour (Faceted by Working Day)") + xlab("Hour of the Day") + ylab("Average Rentals")
+```
+
+***This plot showcases the average bike rentals by hour for working days versus non-working days. Key takeaway: There are distinct patterns in rental behavior, with working days showing sharp peaks and non-working days having a more even distribution.***
+
+***Question 2 Part C***
+
+```{r, echo=FALSE, message=FALSE}
+nine_am_data <- bikeshare %>%
+  filter(hr == 9) %>%
+  group_by(weathersit, workingday) %>%
+  summarize(average_rentals = mean(total))
+
+ggplot(nine_am_data, aes(x=weathersit, y=average_rentals, fill=as.factor(weathersit))) +
+  geom_bar(stat="identity") +
+  facet_wrap(~workingday) +
+  ggtitle("Average Ridership at 9 AM by Weather Situation and Working Day") +
+  xlab("Weather Situation") +
+  ylab("Average Ridership") +
+  scale_fill_discrete(name="Weather Situation")
+```
+
+***The bar plot displays average ridership at 9 AM in different weather situations, further segmented by working days. Key takeaway: Weather significantly impacts ridership, with clear weather conditions seeing higher ridership.***
+
+***Question 3***
+
+```{r, echo=FALSE, message=FALSE}
+capmetro_UT <- capmetro_UT %>%
+  mutate(day_of_week = factor(day_of_week, levels=c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")),
+         month = factor(month, levels=c("Sep", "Oct", "Nov")))
+```
+
+```{r, echo=FALSE, message=FALSE}
+avg_boardings <- capmetro_UT %>%
+  group_by(hour_of_day, day_of_week, month) %>%
+  summarize(average_boarding = mean(boarding))
+
+ggplot(avg_boardings, aes(x=hour_of_day, y=average_boarding, color=month)) +
+  geom_line() +
+  facet_wrap(~day_of_week) +
+  ggtitle("Average Boardings by Hour of Day, Day of Week, and Month") +
+  xlab("Hour of Day") +
+  ylab("Average Boardings") +
+  theme(legend.title=element_blank())
+```
+
+***This line graph demonstrates the average number of boardings by hour, across different days of the week and months. Key takeaway: The pattern of peak boardings varies slightly across days and months, with notable dips in boardings on Mondays in September and on Wednesdays through Fridays in November.***
+
+```{r, echo=FALSE, message=FALSE}
+ggplot(capmetro_UT, aes(x=temperature, y=boarding, color=factor(weekend))) +
+  geom_point(alpha=0.5) +
+  facet_wrap(~hour_of_day) +
+  ggtitle("Boardings vs. Temperature (Faceted by Hour of Day)") +
+  xlab("Temperature (°F)") +
+  ylab("Boardings") +
+  scale_color_discrete(name="Day Type", labels=c("Weekday", "Weekend"))
+```
+
+***This scatter plot investigates the relationship between temperature and bus boardings, considering different hours of the day. Key takeaway: While temperature seems to have a varying effect on ridership, higher temperatures generally correlate with increased boardings, especially during specific hours.***
+
+***Question 4 Part A***
+
+```{r, echo=FALSE, message=FALSE}
+top_songs <- billboard %>%
+  group_by(performer, song) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count)) %>%
+  slice(1:10)
+top_songs
+```
+
+***This table lists the top 10 most popular songs since 1958, ranked by the total number of weeks spent on the Billboard Top 100. Key takeaway: The table highlights the enduring popularity of these hits, with some songs remaining on the charts for exceptionally long periods.***
+
+***Question 4 Part B***
+
+```{r, echo=FALSE, message=FALSE}
+filtered_billboard <- billboard %>%
+  filter(year != 1958 & year != 2021)
+
+musical_diversity <- filtered_billboard %>%
+  group_by(year) %>%
+  summarize(unique_songs = n_distinct(paste(performer, song)))
+
+ggplot(musical_diversity, aes(x=year, y=unique_songs)) +
+  geom_line() +
+  ggtitle("Musical Diversity in the Billboard Top 100 Over Time") +
+  xlab("Year") +
+  ylab("Number of Unique Songs")
+```
+
+***The line graph plots the number of unique songs appearing in the Billboard Top 100 each year, providing insight into musical diversity trends. Key takeaway: There is a noticeable increase in musical diversity over the years, suggesting a broadening of musical tastes and genres.***
+
+***Question 4 Part C***
+
+```{r, echo=FALSE, message=FALSE}
+ten_week_hits <- billboard %>%
+  group_by(performer, song) %>%
+  summarize(weeks = n()) %>%
+  filter(weeks >= 10)
+
+artists_ten_week_hits <- ten_week_hits %>%
+  group_by(performer) %>%
+  summarize(ten_week_hits = n()) %>%
+  filter(ten_week_hits >= 30)
+
+ggplot(artists_ten_week_hits, aes(x=reorder(performer, -ten_week_hits), y=ten_week_hits)) +
+  geom_bar(stat="identity") +
+  coord_flip() + # Flipping coordinates for better readability
+  ggtitle("Artists with at Least 30 'Ten-Week Hits'") +
+  xlab("Artist") +
+  ylab("Number of 'Ten-Week Hits'")
+```
+
+***This bar plot shows the count of 'ten-week hits' for 19 prolific artists. Key takeaway: The plot reveals the dominance of certain artists in maintaining long-term chart presence, indicating their significant impact on the music industry.***
